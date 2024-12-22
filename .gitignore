@@ -1,0 +1,13 @@
+data/
+datasets/
+
+*.csv
+*.tsv
+*.json
+*.xlsx
+*.h5
+*.pkl
+
+*.zip
+*.tar
+*.gz
