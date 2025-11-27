@@ -12,6 +12,10 @@ def binary(img):
     binary_img = np.where(img>.5,0,1)
     return binary_img
 
+def selctive_binary(img,val):
+    binary_img = np.where(img==val,0,1)
+    return binary_img
+
 
 
 def connectet_components(img):
@@ -33,17 +37,36 @@ def connectet_components(img):
                     equiv_list.append([cc_img[i-1,j],cc_img[i,j-1]])
     equiv_list = np.array(equiv_list).astype(int)
     equiv_list.sort(axis=0)
-    # for i in range(equiv_list.max())
-    # for i in range(shape[0]):
-    #     for j in range(shape[1]):
+    equiv_list_sorted = []
+    for i,val in enumerate(equiv_list):
+        if i == 0 or not np.array_equal(val, equiv_list[i-1]):
+            equiv_list_sorted.append(val)
 
-    
-    
-    return cc_img,equiv_list,cc_counter
+        # if i != 0 and all(equiv_list[i-1] == equiv_list[i]):
+        #         # print(f'dubble{equiv_list[i-1]}={equiv_list[i]}')
+        #         continue
+        # else:
+        #     print('here')
+        #     equiv_list_sorted.append(val)
+    for i in range(10):
+        for eqiv in equiv_list_sorted:
+            for i in range(shape[0]):
+                for j in range(shape[1]):
+                    if cc_img[i,j] == eqiv[0]:
+                        cc_img[i,j] = eqiv[1]
 
 
 
-img_path = Path.cwd().parent/'data_sample'/'1006427285'/'1006427285-0001.png'
+
+    return cc_img,np.array(equiv_list_sorted),cc_counter
+
+
+
+# img_path = Path.cwd()/'data_sample'/'1006427285'/'1006427285-0001.png'
+
+img_path = Path('/home/friedrich/Dokumente/Software/kaggle-projects/challenges/PhysioNet/data_sample') / '1006427285' /'1006427285-0001.png'
+
+
 
 img = plt.imread(img_path)
 
@@ -54,11 +77,17 @@ img = grayscale(img)
 img = binary(img)
 
 img = connectet_components(img)[0]
-print(connectet_components(img)[1])
+# print(connectet_components(img)[1])
 
 
 viewer = napari.Viewer()
 viewer.add_image(img)
+nonzero_pixels = img[img > 0]
+values, counts = np.unique(nonzero_pixels, return_counts=True)
+most_frequent_value = values[np.argmax(counts)]
+print(most_frequent_value)
+viewer.add_image(selctive_binary(img,most_frequent_value))
+
 
 napari.run()
 
