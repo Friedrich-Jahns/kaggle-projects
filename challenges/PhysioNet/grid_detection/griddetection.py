@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import cv2
 import napari
+import cc3d
 
 def grayscale(img):
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -75,6 +76,7 @@ img = grayscale(img)
 img = binary(img)
 
 img = connectet_components(img)[0]
+# labels = cc3d.connected_components(img)
 # print(connectet_components(img)[1])
 
 
@@ -92,3 +94,19 @@ napari.run()
 
 # plt.imshow(img,cmap='gray')
 # plt.show()
+
+
+labels, N = cc3d.connected_components(img, return_N=True)
+
+# Größte Komponente (außer Hintergrund, Label 0)
+counts = np.bincount(labels.flat)  # zählt Pixel pro Label
+counts[0] = 0  # Hintergrund ignorieren
+largest_label = np.argmax(counts)
+
+# Bild der größten Komponente erstellen
+largest_component = (labels == largest_label).astype(np.uint8)
+
+# Anzeigen
+plt.imshow(largest_component, cmap='gray')
+plt.title(f'Größte Komponente: Label {largest_label}')
+plt.show()
