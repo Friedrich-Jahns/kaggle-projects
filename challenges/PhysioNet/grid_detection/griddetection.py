@@ -16,8 +16,6 @@ def selctive_binary(img,val):
     binary_img = np.where(img==val,0,1)
     return binary_img
 
-
-
 def connectet_components(img):
     shape = np.array(img).shape
     cc_img = np.zeros(shape).astype(int)
