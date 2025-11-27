@@ -46,7 +46,7 @@ def connectet_components(img):
         # else:
         #     print('here')
         #     equiv_list_sorted.append(val)
-    for i in range(10):
+    for i in range(1):
         for eqiv in equiv_list_sorted:
             for i in range(shape[0]):
                 for j in range(shape[1]):
