@@ -10,7 +10,7 @@ def grayscale(img):
     return gray_img
 
 def binary(img):
-    binary_img = np.where(img>.5,0,1)
+    binary_img = np.where(img>.8,0,1)
     return binary_img
 
 def selctive_binary(img,val):
@@ -63,13 +63,13 @@ def connectet_components(img):
 
 # img_path = Path.cwd()/'data_sample'/'1006427285'/'1006427285-0001.png'
 
-img_path = Path('/home/friedrich/Dokumente/Software/kaggle-projects/challenges/PhysioNet/data_sample') / '1006427285' /'1006427285-0001.png'
+img_path = Path('/home/friedrich/Dokumente/Software/kaggle-projects/challenges/PhysioNet/data_sample') / '1006427285' /'1006427285-0009.png'
 
 
 
 img = plt.imread(img_path)
 
-img = img[600:800,50:500]
+img = img[600:1100,50:900]
 
 img = grayscale(img)
 
