@@ -8,6 +8,7 @@ datasets/
 *.h5
 *.pkl
 *.png
+*.pth
 
 *.zip
 *.tar
