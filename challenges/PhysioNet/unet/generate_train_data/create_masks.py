@@ -63,7 +63,7 @@ for i in os.listdir(dat_path):
     filepath = dat_path / i / f'{i}-0001.png'
     data  = mask_gererator(filepath)
     curves_and_text = data.segment_curves_and_text()
-    if True:
+    if False:
         print(i)
         plt.figure(figsize=(15,15))
         plt.subplot(331)
@@ -88,7 +88,7 @@ for i in os.listdir(dat_path):
         plt.imshow(curves_and_text[3],cmap='gray')
         plt.title('thresholded_curve+CC_filter')
         plt.show()
-    if False:
+    if True:
 
         mpimg.imsave(save_path / 'curve_mask' / f'{i}.png', curves_and_text[3], cmap='gray')
         mpimg.imsave(save_path / 'text_mask' / f'{i}.png', curves_and_text[1], cmap='gray')

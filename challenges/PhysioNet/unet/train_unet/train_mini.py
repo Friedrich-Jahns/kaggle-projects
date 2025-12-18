@@ -6,9 +6,11 @@ from unet import UNet
 import torchvision.transforms as transforms
 from torchvision.transforms import functional as F
 import random
+import os
 
 # Pfade zu deinen Daten
-dat_path = Path.cwd().parent / "train_data" / "train"
+cwd = Path(os.path.dirname(os.path.abspath(__file__)))
+dat_path = cwd.parent / "train_data" / "train"
 image_dir = dat_path / "img"
 
 mask_dirs = {
