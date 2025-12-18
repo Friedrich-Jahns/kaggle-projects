@@ -46,7 +46,7 @@ transform = transforms.Compose([
 dataloader = get_dataloader(
     image_dir,
     mask_dirs,
-    batch_size=4,
+    batch_size=1,
     shuffle=True,
     transform=transform,
     resize=(256,256)  # auch im Dataset resize
@@ -58,10 +58,10 @@ device = "cpu"  # CPU-Training, da kein CUDA verfügbar
 # Modell, Loss, Optimizer
 model = UNet(in_channels=3, out_channels=4).to(device)
 criterion = nn.CrossEntropyLoss()  # 4 Klassen: 0=BG, 1=text, 2=curve, 3=grid
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # Training (Mini-Test)
-num_epochs = 50  # für schnellen Test
+num_epochs = 5  # für schnellen Test
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
