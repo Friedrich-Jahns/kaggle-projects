@@ -89,6 +89,9 @@ for i in os.listdir(dat_path):
         plt.title('thresholded_curve+CC_filter')
         plt.show()
     if True:
+        for sub in ['curve_mask', 'text_mask', 'img', 'grid_mask']:
+            (save_path / sub).mkdir(parents=True, exist_ok=True)
+
 
         mpimg.imsave(save_path / 'curve_mask' / f'{i}.png', curves_and_text[3], cmap='gray')
         mpimg.imsave(save_path / 'text_mask' / f'{i}.png', curves_and_text[1], cmap='gray')
