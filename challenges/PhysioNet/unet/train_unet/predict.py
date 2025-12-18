@@ -14,6 +14,8 @@ cwd = Path(os.path.dirname(os.path.abspath(__file__)))
 
 dat_path = cwd.parent.parent / 'data_sample'
 model_path = "unet_multiclass_model_mini.pth"
+# model_path = "unet_resnet34_pretrained.pth"
+
 save_masks = True
 # save_dir = Path.cwd() / "pred_masks"
 # save_dir.mkdir(exist_ok=True)
