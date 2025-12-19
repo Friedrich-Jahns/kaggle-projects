@@ -29,8 +29,9 @@ def check_and_fix_mask(mask_file: Path, img_file: Path):
     mask = Image.open(mask_file).convert("L")
 
     arr = np.array(mask)
-    arr = (arr > 0).astype(np.uint8)  # binär 0/1
+    arr = (arr > 0).astype(np.uint8)  # nur im Speicher binär 0/1
 
+    # auf Bildgröße prüfen und ggf. anpassen
     if arr.shape != (img.height, img.width):
         arr = np.array(
             Image.fromarray(arr).resize(
@@ -39,25 +40,28 @@ def check_and_fix_mask(mask_file: Path, img_file: Path):
         )
         arr = (arr > 0).astype(np.uint8)
 
-    Image.fromarray(arr).save(mask_file)
-
+    # ✅ NICHT speichern, nur prüfen / zurückgeben
     if not set(np.unique(arr)).issubset({0, 1}):
         raise ValueError(f"Ungültige Maskenwerte in {mask_file}")
 
+    return arr  # nur im Speicher
+
+# Beispiel: alle Masken prüfen (nur im Speicher)
 for img_file in IMAGE_DIR.glob("*.png"):
     mask_file = MASK_DIR / img_file.name
     if not mask_file.exists():
         raise FileNotFoundError(f"Maske fehlt für {img_file.name}")
-    check_and_fix_mask(mask_file, img_file)
-
-print("✅ Masken validiert (1-Kanal, 0/1, korrekte Größe)")
+    arr = check_and_fix_mask(mask_file, img_file)
 
 # ============================================================
 # 3️⃣ FastAI DataBlock
 # ============================================================
-
 def get_mask(fn):
-    return MASK_DIR / fn.name
+    mask_file = MASK_DIR / fn.name
+    mask = PILMask.create(mask_file)
+    arr = np.array(mask)
+    arr = (arr > 0).astype(np.uint8)  # 0/1 im Speicher
+    return TensorMask(arr) 
 
 dblock = DataBlock(
     blocks=(
@@ -76,7 +80,7 @@ dblock = DataBlock(
     )
 )
 
-dls = dblock.dataloaders(IMAGE_DIR, bs=1)
+dls = dblock.dataloaders(IMAGE_DIR, bs=2)
 
 dls.show_batch(max_n=4)
 
@@ -97,7 +101,7 @@ learn = unet_learner(
 )
 
 
-learn.fine_tune(1)
+learn.fine_tune(5)
 
 # ============================================================
 # 5️⃣ Ergebnisse & Fehleranalyse
@@ -106,13 +110,13 @@ learn.fine_tune(1)
 learn.show_results(max_n=6, figsize=(7, 8))
 
 interp = SegmentationInterpretation.from_learner(learn)
-interp.plot_top_losses(k=2)
+interp.plot_top_losses(k=1)
 
 # ============================================================
 # 6️⃣ Modell exportieren
 # ============================================================
 
-EXPORT_PATH = BASE_DIR / "curve_segmentation_model.pkl"
+EXPORT_PATH = Path(__file__).resolve().parent / "curve_segmentation_model.pkl"
 learn.export(EXPORT_PATH)
 
 print(f"✅ Modell exportiert nach: {EXPORT_PATH}")

@@ -1,17 +1,17 @@
 import numpy as np
 from pathlib import Path
-from PIL import Image
 
+import matplotlib.pyplot as plt
 from fastai.vision.all import *
 
 # ============================================================
-# 1️⃣ Pfade anpassen
+# 1️⃣ Pfade
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent / "train_data" / "train"
 
 IMAGE_DIR = BASE_DIR / "img"
-MODEL_PATH = BASE_DIR / "curve_segmentation_model.pkl"
+MODEL_PATH = Path(__file__).resolve().parent / "curve_segmentation_model.pkl"
 
 assert IMAGE_DIR.exists(), "Image-Verzeichnis nicht gefunden"
 assert MODEL_PATH.exists(), "Modell (.pkl) nicht gefunden"
@@ -23,13 +23,13 @@ assert MODEL_PATH.exists(), "Modell (.pkl) nicht gefunden"
 learn = load_learner(MODEL_PATH)
 learn.model.eval()
 
-print("✅ Modell geladen")
 
 # ============================================================
 # 3️⃣ Beispielbild auswählen
 # ============================================================
 
 img_file = sorted(IMAGE_DIR.glob("*.png"))[0]
+print(img_file)
 print(f"🖼 Testbild: {img_file.name}")
 
 img = PILImage.create(img_file)
@@ -40,26 +40,38 @@ img = PILImage.create(img_file)
 
 pred_mask, pred_class, pred_probs = learn.predict(img)
 
-# pred_mask ist ein Tensor mit Klassen-IDs (0/1)
-mask_np = pred_mask.numpy().astype(np.uint8)
+# Klassenmaske (0/1)
+mask_np = pred_mask.numpy()
+
+# Wahrscheinlichkeitskarte für Klasse "curve"
+prob_curve = pred_probs[..., 1].numpy()
 
 # ============================================================
-# 5️⃣ Maske speichern
+# 5️⃣ Plot: Input + Prediction
 # ============================================================
 
-out_dir = BASE_DIR / "predictions"
-out_dir.mkdir(exist_ok=True)
+# Vorhersage
+pred_mask, pred_class, pred_probs = learn.predict(img)
 
-out_mask_path = out_dir / f"{img_file.stem}_pred_mask.png"
-Image.fromarray(mask_np * 255).save(out_mask_path)
+# Wahrscheinlichkeiten für Klasse "curve"
+prob_curve = pred_probs[1].numpy()  # Shape: (H, W)
 
-print(f"✅ Vorhersage gespeichert: {out_mask_path}")
+# Originalbild in NumPy
+img_np = np.array(img)  # Shape: (H, W) oder (H, W, 3)
 
-# ============================================================
-# 6️⃣ Optional: Overlay anzeigen
-# ============================================================
+fig, axes = plt.subplots(1, 2, figsize=(10, 10))
 
-learn.show_results(
-    max_n=1,
-    figsize=(5, 5)
-)
+# Input
+axes[0].imshow(img_np, cmap="gray")
+axes[0].axis("off")
+axes[0].set_title("Input")
+
+# Prediction Overlay
+# axes[1].imshow(img_np, cmap="gray")
+# med_prob_curve = np.median(prob_curve)
+prob_curve = np.where(prob_curve>.15,1,0)
+axes[1].imshow(prob_curve, alpha=0.6, cmap="Reds", extent=(0, img_np.shape[1], img_np.shape[0], 0))
+axes[1].axis("off")
+axes[1].set_title("Prediction (Wahrscheinlichkeit)")
+
+plt.show()
