@@ -42,7 +42,6 @@ def combine_masks(img_name):
 
         mask = mask > 0
 
-        # ⚠️ NUR setzen, wo noch Hintergrund ist
         combined[(mask) & (combined == 0)] = cls_idx
 
     return TensorMask(combined)
@@ -61,7 +60,7 @@ dblock = DataBlock(
     get_y=get_mask,
     splitter=RandomSplitter(seed=42),
     item_tfms=Resize(
-        512,
+        256,
         method=ResizeMethod.Pad,   # ❗ schützt dünne Klassen (curve)
         pad_mode='zeros'
     ),
@@ -72,7 +71,7 @@ dblock = DataBlock(
     )
 )
 
-dls = dblock.dataloaders(IMAGE_DIR, bs=4)
+dls = dblock.dataloaders(IMAGE_DIR, bs=2)
 
 # -------------------------------------------------
 # 4️⃣ Sanity-Check (EXTREM wichtig)
@@ -104,7 +103,7 @@ learn = unet_learner(
 # -------------------------------------------------
 # 6️⃣ Training
 # -------------------------------------------------
-learn.fine_tune(5)
+learn.fine_tune(15)
 
 # -------------------------------------------------
 # 7️⃣ Modell speichern

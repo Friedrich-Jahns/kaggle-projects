@@ -33,25 +33,34 @@ img_np = np.array(img)
 # -------------------------------------------------
 # Vorhersage
 # -------------------------------------------------
-pred_mask, pred_class, pred_probs = learn.predict(img)
-# pred_probs: [4, H, W]  → 0 = Hintergrund, 1–3 = Klassen
+pred_mask, pred_class, pred_logits = learn.predict(img)
+# pred_logits: [4, H, W] → 0=Hintergrund, 1-3=Klassen
 
 # -------------------------------------------------
-# BESSERE Multiclass-Maskenlogik
+# Softmax auf Klassen
 # -------------------------------------------------
-# Objektklassen konkurrieren lassen
-obj_probs = pred_probs[1:]                 # [3, H, W]
-max_obj_prob, obj_class = obj_probs.max(dim=0)
-
-mask = torch.zeros_like(pred_probs[0], dtype=torch.long)
-
-OBJ_THRESHOLD = 0.25    # 0.2–0.35 ausprobieren
-mask[max_obj_prob > OBJ_THRESHOLD] = obj_class[max_obj_prob > OBJ_THRESHOLD] + 1
-
-mask_np = mask.cpu().numpy().astype(np.uint8)
+pred_probs = torch.softmax(pred_logits, dim=0)  # Jetzt echte Wahrscheinlichkeiten 0-1
 
 # -------------------------------------------------
-# Napari Visualisierung (RICHTIG!)
+# Einzelmasken erstellen
+# -------------------------------------------------
+OBJ_THRESHOLD = 0.25  # 0.2–0.35 ausprobieren
+class_masks = []
+
+for i in range(1, 4):  # Klassen 1-3
+    mask_i = (pred_probs[i] > OBJ_THRESHOLD).cpu().numpy().astype(np.uint8)
+    class_masks.append(mask_i)
+
+# -------------------------------------------------
+# Kombinierte Farb-Maske
+# -------------------------------------------------
+combined_mask = np.zeros_like(class_masks[0], dtype=np.uint8)
+
+for idx, m in enumerate(class_masks, start=1):
+    combined_mask[m > 0] = idx
+
+# -------------------------------------------------
+# Napari Visualisierung
 # -------------------------------------------------
 viewer = napari.Viewer()
 
@@ -62,22 +71,19 @@ viewer.add_image(
     colormap="gray"
 )
 
-# Vorhersage als Labels (NICHT add_image!)
-viewer.add_image(
-    mask_np,
-    name="Prediction",
-    opacity=0.6
-)
-
-# -------------------------------------------------
-# Debug: Wahrscheinlichkeitskarten anzeigen
-# -------------------------------------------------
-for i in range(1, 4):
+# Einzelne Klassenmasken
+for i, mask in enumerate(class_masks, start=1):
     viewer.add_image(
-        pred_probs[i].cpu().numpy(),
-        name=f"Prob Klasse {i}",
+        mask,
+        name=f"Klasse {i} Prob> {OBJ_THRESHOLD}",
         colormap="inferno",
-        opacity=0.7
+        opacity=0.5
     )
+
+# Kombinierte Farb-Maske über Original
+viewer.add_labels(
+    combined_mask,
+    name="Farb-Maske"
+)
 
 napari.run()
