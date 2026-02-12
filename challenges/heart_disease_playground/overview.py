@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+import xgboost as xgb
+
 
 dat_train = pd.read_csv('dat/train.csv')
 dat_test = pd.read_csv('dat/test.csv')
@@ -101,9 +103,23 @@ class data:
         submission.to_csv("submission.csv", index=False)
         print('saved')
 
+
+    def XGBoost(self):
+        X_train,X_val,y_train,y_val = self.train_test()
+        clf = xgb.XGBClassifier() 
+        clf.fit(X_train, y_train)
+        
+        y_pred = clf.predict(X_val)
+        acc = accuracy_score(y_val, y_pred)
+        print(f"Validation Accuracy: {acc:.4f}")
+        
+        return clf
+
+
 train = data(dat_train)
 print(dat_train.head())
 #clf = train.RandomForrestClassifier()
-clf = train.RFC_RandomSearch()
+#clf = train.RFC_RandomSearch()
+clf = train.XGBoost()
 test = data(dat_test,mode='pred',clf=clf)
 test.RandomForrestClassifier_pred()
